@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>这是第二页</h2>
+    {% for user in users %}
+    {{ user.user_id }}--{{ user.user_name }}<br>
+    {% endfor %}
+{% endblock %}
