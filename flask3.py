@@ -1,15 +1,75 @@
 # coding:gbk
 from flask import Flask, request, url_for, render_template, flash,abort
 from models import User
+import  time
+from functools import wraps
+from flask import make_response
+import json
+import  logging
+
+logging.basicConfig(level=logging.DEBUG,
+                format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                datefmt='%a, %d %b %Y %H:%M:%S',
+                filename='i://myapp.log',
+                filemode='a')
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+console.setFormatter(formatter)
+logging.getLogger('').addHandler(console)
+
+
+
 
 app = Flask(__name__) #传name flask 就知道当前脚本所在路径
 app.secret_key = '123' # use flask msg must set a secretkey
 
 
+#每次返回数据中，带上响应头，包含API版本和本次请求的requestId，以及允许所有域跨域访问API, 记录访问日志
+
+def afterLog(fun):
+    @wraps(fun)
+    def wrapper_fun(*args, **kwargs):
+
+
+        ret=fun(*args, **kwargs)
+        response = make_response(ret)
+        print "log"
+
+
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'OPTIONS,PUT,GET,POST,DELETE'
+        response.headers['Access-Control-Allow-Headers'] = "Referer,Accept,Origin,User-Agent"
+        logging.info(json.dumps({
+                "AccessLog": {
+                "status_code": response.status_code,
+                "method": request.method,
+                "ip": request.headers.get('X-Real-Ip', request.remote_addr),
+                "url": request.url,
+                "referer": request.headers.get('Referer'),
+                "agent": request.headers.get("User-Agent"),
+                    "heh":"11111111"
+                }
+            }))
+        return response
+    return wrapper_fun
+
+
+
+
+
+
+
+@app.route('/delay')
+def delay():
+    time.sleep(5)
+    return 'delay happiness'
 
 @app.route('/')
+@afterLog
 def hello_world():
-    return 'xxHello World!'
+    print "hello world"
+    return 'xxxHello World!'
 
 
 @app.route('/user/<id>', methods=['POST', "get"])
