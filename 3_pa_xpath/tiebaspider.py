@@ -4,7 +4,7 @@ from multiprocessing.dummy import Pool as ThreadPool
 import requests
 import json
 import sys
-
+# 审查元素要直接审查返回的内容，防止执行js改变结构，
 reload(sys)
 
 sys.setdefaultencoding('utf-8')
@@ -28,25 +28,25 @@ def spider(url):
 
 
 
-    print content_field
+    #print content_field
 
     #print content_field[0].xpath('string(.)')
     item = {}
     for each in content_field:
         reply_info = json.loads(each.xpath('@data-field')[0].replace('&quot',''))
         author = reply_info['author']['user_name']
-        content = each.xpath('div[@class="d_post_content_main"]/div/cc/div[@class="d_post_content j_d_post_content "]/text()')[0]
+        content = each.xpath('div[@class="d_post_content_main"]/div/cc/div/text()')[0]
         reply_time = reply_info['content']['date']
-        print content
-        print reply_time
-        print author
+        # print content
+        # print reply_time
+        # print author
         item['user_name'] = author
         item['topic_reply_content'] = content
         item['topic_reply_time'] = reply_time
         towrite(item)
 
 if __name__ == '__main__':
-    pool = ThreadPool(4)
+    pool = ThreadPool(5)
     f = open('content.txt','a')
     page = []
     for i in range(1,11):
